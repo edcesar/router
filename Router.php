@@ -3,8 +3,8 @@ namespace NewDay\Route;
 
 class Router
 {
-    private $routes;
-    private $path;
+    public $routes;
+    public $path;
     
     private $actualPathConfi;
     
@@ -63,39 +63,59 @@ class Router
         return $this;
     }
   
-    public function getRouteWithParameter($path)
+    public function executeWithParameter($tipo)
     {
-        $routes = array_keys($this->routes['routes']);
+        $routes = array_keys($this->routes[$tipo]);
         
         foreach ($routes as $route) {
-            if (strpos($path, $route) !== false) {
-                $parameter = str_replace([$route,'/'], '', $path);
-                return $this->routes['routes'][$route]($parameter);
+            if (strpos($this->path, $route) !== false) {
+                $parameter = str_replace([$route,'/'], '', $this->path);
+                return $this->routes[$tipo][$route]($parameter);
             }
         }
         
         return false;
     }
     
-    public function run()
+    public function executeBefore()
     {
-        # Before
         if (array_key_exists($this->path, $this->routes['before'])) {
-           $this->routes['before'][$this->path]();
+           return $this->routes['before'][$this->path]();
         }
         
-        # Route with parameter
-        if (array_key_exists($this->path, $this->routes['routes'])) {
-             $this->routes['routes'][$this->path]();
-        } else {
-            # Route less parameter
-            $this->getRouteWithParameter($this->path);
-        }
-
-        # After
+        # Before with parameter
+        return $this->executeWithParameter('before');
+      
+    }
+    
+    public function executeAfter()
+    {
         if (array_key_exists($this->path, $this->routes['after'])) {
-           $this->routes['after'][$this->path]();
+           return $this->routes['after'][$this->path]();
+        }
+        
+        # After with parameter
+        return $this->executeWithParameter('after');
+    }
+    
+    public function executeRoute()
+    {
+        # Route less parameter
+        if (array_key_exists($this->path, $this->routes['routes'])) {
+             return $this->routes['routes'][$this->path]();
         } 
+            
+        # Route with parameter
+        return $this->executeWithParameter('routes');
+    }
+    
+    public function run()
+    {
+        $this->executeBefore();
+        
+        $this->executeRoute();
+
+        $this->executeAfter();
         
     }
     

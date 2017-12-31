@@ -15,7 +15,7 @@ $tests = [
                 return 'Hello executado!';
             });
 
-            $ocorrido = $app->run('/hello');
+            $ocorrido = $app->executeRoute();
 
             var_dump($esperado == $ocorrido);
         },
@@ -31,53 +31,53 @@ $tests = [
                 return 'clientes listados!';
             });
 
-            $ocorrido = $app->run('/clientes');
+            $ocorrido = $app->executeRoute();
             var_dump($esperado == $ocorrido);
         },
                
     'testDeveCadastrarERetornarOParametro' =>
        function() use($app) {
             
-            $app->_setPath('/cliente/joao@gmail.com');
+            $app->_setPath('/cliente/joao');
             
             $app->get('/cliente/:email', function ($email) {
                 return $email;
             });
             
-            $esperado = 'joao@gmail.com';
-            $ocorrido = $app->run('/cliente/joao@gmail.com');
+            $esperado = 'joao';
+            $ocorrido = $app->executeRoute();
             
             var_dump($esperado == $ocorrido);
        }, 
                
      'testDeveExecutarTarefaAntesDaRotaSerExecutada'=>
         function() use ($app) {
-            $app->_setPath('/cliente/joao@gmail.com');
+            $app->_setPath('/alunos/joao@gmail.com');
             
-            $app->get('/cliente/:email', function ($email) {
+            $app->get('/alunos/:email', function ($email) {
                 return $email;
             })->before(function() {
                 return 'executado antes!';
             });
-            
+           
             $esperado = 'executado antes!';
-            $ocorrido = $app->run();
-            
+            $ocorrido = $app->executeBefore();
+         
             var_dump($esperado == $ocorrido);
         },
     
     'testDeveExecutarTarefaDepoisDaRotaSerExecutada'=>
         function() use ($app) {
-            $app->_setPath('/cliente/joao@gmail.com');
+            $app->_setPath('/funcionario/joao@gmail.com');
             
-            $app->get('/cliente/:email', function ($email) {
+            $app->get('/funcionario/:email', function ($email) {
                 return $email;
-            })->before(function() {
+            })->after(function() {
                 return 'executado depois!';
             });
             
             $esperado = 'executado depois!';
-            $ocorrido = $app->run();
+            $ocorrido = $app->executeAfter();
             
             var_dump($esperado == $ocorrido);
         }                 
