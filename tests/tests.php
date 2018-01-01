@@ -103,8 +103,36 @@ $tests = [
             $ocorrido = $app->executeRoute();
             
             var_dump($esperado == $ocorrido);
-        }
-
+        },
+                
+    'testDeveRetornarDoisParametros' => 
+        function() use($app) {
+            // /*
+            $app->_setPath('/atleta/joao/campeao');
+            $app->get('/atleta/:nome/:posicao', function($nome, $posicao) {
+                return [$nome, $posicao];
+            });
+            
+            $esperado = ['joao', 'campeao'];
+            
+            $ocorrido = $app->executeRoute();
+            
+            var_dump($esperado == $ocorrido);
+            // */
+        },
+     'testDeveExecutarClasseERetornarDoisParametros' => 
+        function() use($app) {
+            // /*
+            $app->_setPath('/atleta/joao/campeao');
+            $app->get('/atleta/:nome/:posicao', 'Corrida@informacoes');
+            
+            $esperado = ['joao', 'campeao'];
+            
+            $ocorrido = $app->executeRoute();
+            
+            var_dump($esperado == $ocorrido);
+            // */
+        }           
 ];
         
 

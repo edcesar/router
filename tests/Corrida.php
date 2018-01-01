@@ -11,4 +11,9 @@ class Corrida
     {
         return $campeao;
     }
+    
+    public function informacoes($nome, $posicao)
+    {
+        return [$nome, $posicao];
+    }
 }

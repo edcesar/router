@@ -3,8 +3,8 @@ namespace NewDay\Route;
 
 class Router
 {
-    public $routes;
-    public $path;
+    private $routes;
+    private $path;
     
     private $actualPathConfi;
     
@@ -18,7 +18,6 @@ class Router
         $this->routes['parameters'] = [];
         $this->routes['after']      = [];
         $this->routes['end'] = function(){};
-        
     }
     
     /* Metodo para teste */
@@ -69,11 +68,12 @@ class Router
         
         foreach ($routes as $route) {
             if (strpos($this->path, $route) !== false) {
-                $parameter = str_replace([$route,'/'], '', $this->path);
+                $parameter = str_replace($route, '', $this->path);
+                $parameter = explode('/', $parameter);
                 $execute = $this->routes[$tipo][$route];
                 
                 if (is_callable($execute)) {
-                    return $this->routes[$tipo][$route]($parameter);
+                    return $this->routes[$tipo][$route](...$parameter);
                 }
                 
                 return $this->executeClass($execute, $parameter);
@@ -104,12 +104,12 @@ class Router
         return $this->executeWithParameter('after');
     }
     
-    public function executeClass($class, $parameter = '')
+    public function executeClass($class, $parameter = [])
     {
         list($class, $method) = explode('@', $class);
         
         $obj = new $class;
-        return $obj->$method($parameter);
+        return $obj->$method(...$parameter);
     }
     
     public function executeRoute()
