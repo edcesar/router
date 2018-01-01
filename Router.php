@@ -70,7 +70,13 @@ class Router
         foreach ($routes as $route) {
             if (strpos($this->path, $route) !== false) {
                 $parameter = str_replace([$route,'/'], '', $this->path);
-                return $this->routes[$tipo][$route]($parameter);
+                $execute = $this->routes[$tipo][$route];
+                
+                if (is_callable($execute)) {
+                    return $this->routes[$tipo][$route]($parameter);
+                }
+                
+                return $this->executeClass($execute, $parameter);
             }
         }
         
@@ -98,11 +104,25 @@ class Router
         return $this->executeWithParameter('after');
     }
     
+    public function executeClass($class, $parameter = '')
+    {
+        list($class, $method) = explode('@', $class);
+        
+        $obj = new $class;
+        return $obj->$method($parameter);
+    }
+    
     public function executeRoute()
     {
+
         # Route less parameter
         if (array_key_exists($this->path, $this->routes['routes'])) {
-             return $this->routes['routes'][$this->path]();
+            
+            $execute = $this->routes['routes'][$this->path];
+            if (is_callable($execute)) {
+                return $execute();
+            }
+            return $this->executeClass($execute);
         } 
             
         # Route with parameter
@@ -111,19 +131,16 @@ class Router
     
     public function run()
     {
+        $this->routes['start']();
         $this->executeBefore();
-        
         $this->executeRoute();
-
         $this->executeAfter();
-        
+        $this->routes['end']();
     }
     
     public function __destruct() 
     {
-        $this->routes['start']();
-        $this->run();
-        $this->routes['end']();
+        $this->run();   
     }
  
 }

@@ -1,5 +1,7 @@
 <?php
-require_once __DIR__ . '/Router.php';
+require_once __DIR__ . '/../Router.php';
+require_once __DIR__ . '/Corrida.php';
+
 use NewDay\Route\Router;
 
 $app = new Router;
@@ -80,15 +82,32 @@ $tests = [
             $ocorrido = $app->executeAfter();
             
             var_dump($esperado == $ocorrido);
-        }                 
-        
+        },
+    
+    'testDeveExecutarClassEMetodo' =>
+        function() use ($app) {
+            $app->_setPath('/corrida');
+            $app->get('/corrida', 'Corrida@start');
+            
+            $esperado = 'Corrida iniciada!';
+            $ocorrido = $app->executeRoute();
+            
+            var_dump($esperado == $ocorrido);
+        },
+        'testDeveExecutarClassEMetodoComParametro' =>
+        function() use($app) {
+            $app->_setPath('/atleta/campeao/joaoCorredor');
+            $app->get('/atleta/campeao/:campeao', 'Corrida@campeao');
+            
+            $esperado = 'joaoCorredor';
+            $ocorrido = $app->executeRoute();
+            
+            var_dump($esperado == $ocorrido);
+        }
+
 ];
         
-        
-        
-        
-        
-        
+
         
 foreach($tests as $teste) {
     $teste();
