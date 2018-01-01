@@ -15,7 +15,6 @@ class Router
         $this->routes['start'] = function(){};
         $this->routes['before']     = [];
         $this->routes['routes']     = [];
-        $this->routes['parameters'] = [];
         $this->routes['after']      = [];
         $this->routes['end'] = function(){};
     }
@@ -38,15 +37,20 @@ class Router
     
     public function get($path, $callback)
     {
-        $conf = explode(':', $path, 2);
+         # cliente/{nome}/{idade:[a-z]} to cliente/{nome}/[a-z]}
+        $rota = preg_replace("/{([a-z A-Z 0-9]+):/", '{', $path);
+
+         # cliente/{nome}/[a-z]} to cliente/(.*)/[a-z]}
+        $rota = preg_replace("/{(.*)+}\//", '(.*)/', $rota);
+        $rota = preg_replace("/{(.*)+}/", '(.*)', $rota);
+
+         # cliente/(.*)/[a-z]} to cliente\/(.*)\/([a-z]) (Regex valid!)
+        $rota = str_replace(['{','}', '/'], ['(',')', '\/'], $rota);
         
-        $path = $conf[0];
-        $parameter = $conf[1] ?? null;
+        $this->routes['routes'][$rota] = $callback;
         
-        $this->routes['routes'][$path] = $callback;
-        $this->routes['parameters'][$path] = $parameter;
+        $this->actualPathConfi = $rota;
         
-        $this->actualPathConfi = $path;
         return $this;
     }
     
@@ -62,46 +66,42 @@ class Router
         return $this;
     }
   
-    public function executeWithParameter($tipo)
-    {
-        $routes = array_keys($this->routes[$tipo]);
-        
-        foreach ($routes as $route) {
-            if (strpos($this->path, $route) !== false) {
-                $parameter = str_replace($route, '', $this->path);
-                $parameter = explode('/', $parameter);
-                $execute = $this->routes[$tipo][$route];
-                
-                if (is_callable($execute)) {
-                    return $this->routes[$tipo][$route](...$parameter);
-                }
-                
-                return $this->executeClass($execute, $parameter);
-            }
-        }
-        
-        return false;
-    }
-    
     public function executeBefore()
     {
-        if (array_key_exists($this->path, $this->routes['before'])) {
-           return $this->routes['before'][$this->path]();
-        }
-        
-        # Before with parameter
-        return $this->executeWithParameter('before');
-      
+        return $this->execute('before'); 
     }
     
     public function executeAfter()
     {
-        if (array_key_exists($this->path, $this->routes['after'])) {
-           return $this->routes['after'][$this->path]();
-        }
+        return $this->execute('after'); 
+    }
+     
+    public function executeRoute()
+    {
+       return $this->execute('routes');
+    }
+    
+    public function execute($execute)
+    {
         
-        # After with parameter
-        return $this->executeWithParameter('after');
+        foreach ($this->routes[$execute] as $route => $execute) {
+           
+            if (preg_match("/{$route}/", $this->path, $match)) {
+  
+                if (count($match) > 1) {
+                    array_shift($match);
+                    $parameter = $match;
+                } else {
+                    $parameter = '';
+                }
+                
+                if (is_callable($execute)) {
+                    return $execute($parameter);
+                }
+                return $this->executeClass($execute, $parameter);
+            }
+        }
+      
     }
     
     public function executeClass($class, $parameter = [])
@@ -110,23 +110,6 @@ class Router
         
         $obj = new $class;
         return $obj->$method(...$parameter);
-    }
-    
-    public function executeRoute()
-    {
-
-        # Route less parameter
-        if (array_key_exists($this->path, $this->routes['routes'])) {
-            
-            $execute = $this->routes['routes'][$this->path];
-            if (is_callable($execute)) {
-                return $execute();
-            }
-            return $this->executeClass($execute);
-        } 
-            
-        # Route with parameter
-        return $this->executeWithParameter('routes');
     }
     
     public function run()
@@ -140,7 +123,7 @@ class Router
     
     public function __destruct() 
     {
-        $this->run();   
+      $this->run();   
     }
  
 }
