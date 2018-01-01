@@ -92,11 +92,11 @@ class Router
                     array_shift($match);
                     $parameter = $match;
                 } else {
-                    $parameter = '';
+                    $parameter = [];
                 }
                 
                 if (is_callable($execute)) {
-                    return $execute($parameter);
+                    return $execute(...$parameter);
                 }
                 return $this->executeClass($execute, $parameter);
             }
