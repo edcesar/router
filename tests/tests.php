@@ -63,11 +63,11 @@ $tests = [
     'quatro' =>
         function() use($app) {
             
-            $app->_setPath('/corrida/5/dezembro');
+            $app->_setPath('/corrida/saoPaulo/dezembro');
             
-            $app->get('/corrida/{saoPaulo:[0-9]}/{dezembro}', 'Corrida@informacoes');
+            $app->get('/corrida/{saoPaulo:[a-z A-Z]}/{dezembro}', 'Corrida@informacoes');
           
-            $esperado = ['5', 'dezembro'];
+            $esperado = ['saoPaulo', 'dezembro'];
             
             $ocorrido = $app->executeRoute();
             
@@ -78,14 +78,13 @@ $tests = [
     'cinco' =>
         function() use($app) {
             
-            $app->_setPath('/cinco/5');
+            $app->_setPath('/cinco/54321');
             
-            $app->get('/cinco/{dezembro:[0-9]}', function() {
-            
-                return ['saoPaulo', 'dezembro'];
+            $app->get('/cinco/{dezembro:[0-9]}', function($numero) {
+                return $numero;
             });
           
-            $esperado = ['saoPaulo', 'dezembro'];
+            $esperado = 54321;
             
             $ocorrido = $app->executeRoute();
             

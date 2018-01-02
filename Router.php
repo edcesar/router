@@ -39,7 +39,7 @@ class Router
     {
         $rota = preg_replace("/{([a-z A-Z 0-9]+):/", '{', $path);
         
-        $rota = preg_replace("/{\[(...)\]}/", '([$1])', $rota);
+        $rota = preg_replace("/{\[(...)\]}/", '([$1]{0,9})', $rota);
 
         $rota = preg_replace("/{(.*?)}/", '(.*)', $rota);
 
