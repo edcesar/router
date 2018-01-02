@@ -37,14 +37,12 @@ class Router
     
     public function get($path, $callback)
     {
-         # cliente/{nome}/{idade:[a-z]} to cliente/{nome}/[a-z]}
         $rota = preg_replace("/{([a-z A-Z 0-9]+):/", '{', $path);
+        
+        $rota = preg_replace("/{\[(...)\]}/", '([$1])', $rota);
 
-         # cliente/{nome}/[a-z]} to cliente/(.*)/[a-z]}
-        $rota = preg_replace("/{(.*)+}\//", '(.*)/', $rota);
-        $rota = preg_replace("/{(.*)+}/", '(.*)', $rota);
+        $rota = preg_replace("/{(.*?)}/", '(.*)', $rota);
 
-         # cliente/(.*)/[a-z]} to cliente\/(.*)\/([a-z]) (Regex valid!)
         $rota = str_replace(['{','}', '/'], ['(',')', '\/'], $rota);
         
         $this->routes['routes'][$rota] = $callback;
